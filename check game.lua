@@ -21,25 +21,30 @@ local GameData = {
         src = "https://raw.githubusercontent.com/ArtemT12/AFK-Hub/main/Thief%20Simulator.lua"
     }
 }
-local Place = game.PlaceId
-local match = false
 
-for _, g in pairs(GameData) do
-    for _, id in ipairs(g.ids) do
-        if id == Place then
-            match = true
-            local ok, err = pcall(function()
-                loadstring(game:HttpGet(g.src))()
+local currentId = game.PlaceId
+local matched = false
+
+for _, entry in pairs(GameData) do
+    for _, id in ipairs(entry.ids) do
+        if id == currentId then
+            matched = true
+            local success, result = pcall(function()
+                local scriptSource = game:HttpGet(entry.src)
+                assert(type(loadstring) == "function", "loadstring unsupported")
+                local exec = loadstring(scriptSource)
+                assert(type(exec) == "function", "Script did not return a function")
+                exec()
             end)
-            if not ok then
-                warn("Script failed:", err)
+            if not success then
+                warn("Failed to load script for game ID:", currentId, "\nError:", result)
             end
             break
         end
     end
-    if match then break end
+    if matched then break end
 end
 
-if not match then
-    warn("Not Supported (PlaceId: " .. Place .. ")")
+if not matched then
+    warn("Game not supported (PlaceId: " .. currentId .. ")")
 end
